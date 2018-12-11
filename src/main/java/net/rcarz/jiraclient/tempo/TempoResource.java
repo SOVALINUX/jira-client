@@ -6,13 +6,19 @@ import net.sf.json.JSON;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.function.Function;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 /**
  * Created by Sergey Nekhviadovich on 12/4/2018.
  */
 public class TempoResource {
+    public static final String HOST = "http://localhost:8090/jira";
+    private static final String TEAM_BASE_URI = "/rest/tempo-teams/1/team";
+    private static final Logger LOGGER = Logger.getAnonymousLogger();
 
     private TempoResource() {
     }
@@ -25,17 +31,17 @@ public class TempoResource {
         return "rest/tempo-accounts/" + getApiRev();
     }
 
-    public static String getBaseTempoTeamUri() {
-        return "/rest/tempo-teams/1/team";
+    public static String getTeamBaseUri() {
+        return TEAM_BASE_URI;
     }
 
-    public static List<AbstractJiraObject> getListOfObjects(Class<? extends AbstractJiraObject> aClass,
-                                                            String query, RestClient restclient)
+    public static List<AbstractJiraObject> getListOfObjects(RestClient restClient, String query,
+                                                            Class<? extends AbstractJiraObject> aClass)
             throws JiraException, IllegalAccessException, InstantiationException {
         JSON jsonResponse;
         String objectClass = aClass.getSimpleName();
         try {
-            jsonResponse = restclient.get(query);
+            jsonResponse = restClient.get(query);
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve " + objectClass, ex);
         }
@@ -48,10 +54,49 @@ public class TempoResource {
             AbstractJiraObject object = aClass.newInstance();
             object.setJsonObject((JSONObject) it.next());
             result.add(object);
-
         }
 
         return result;
+    }
+
+
+    public static JSONObject asJsonObject(AbstractJiraObject object) {
+        JSONObject result = new JSONObject();
+        Map<String, String> map = asMapRepresentation(object);
+        map.forEach(result::put);
+        return result;
+    }
+
+    private static Map<String, String> asMapRepresentation(AbstractJiraObject object) {
+        Field[] fields = object.getClass().getFields();
+        Function<Field, String> function = field -> {
+            field.setAccessible(true);
+            String value = null;
+            try {
+                value = field.get(object).toString();
+            } catch (IllegalAccessException e) {
+               LOGGER.warning(e.getMessage());
+            }
+
+            return value;
+        };
+        return Arrays.stream(fields)
+                .collect(Collectors.toMap(Field::getName, function, (oldValue, newValue) -> oldValue));
+    }
+
+    public static void createObject(RestClient restClient, AbstractJiraObject abstractJiraObject, String query) throws JiraException {
+
+        JSON result;
+        try {
+            result = restClient.post(query,
+                    TempoResource.asJsonObject(abstractJiraObject));
+        } catch (Exception ex) {
+            throw new JiraException("Failed to create " + abstractJiraObject.getClass().getSimpleName(), ex);
+        }
+        if (!(result instanceof JSONObject)) {
+            throw new JiraException("Unexpected result creation");
+        }
+
     }
 
 }
