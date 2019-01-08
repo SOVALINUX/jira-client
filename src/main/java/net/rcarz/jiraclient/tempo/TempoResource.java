@@ -13,4 +13,8 @@ public class TempoResource {
         return "rest/tempo-accounts/" + getApiRev();
     }
 
+    public static String getBaseTempoTeamsUri() {
+        return "rest/tempo-teams/" + getApiRev();
+    }
+
 }
