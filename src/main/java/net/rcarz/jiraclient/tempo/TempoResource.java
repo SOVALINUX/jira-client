@@ -9,7 +9,7 @@ public class TempoResource {
         return "1";
     }
 
-    public static String getBaseTempoUri() {
+    public static String getBaseTempoAccountsUri() {
         return "rest/tempo-accounts/" + getApiRev();
     }
 

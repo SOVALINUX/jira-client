@@ -96,6 +96,7 @@ public class Team {
         while (it != null && it.hasNext()) {
             result.add(new Team((JSONObject) it.next()));
         }
+
         return result;
     }
 
@@ -109,7 +110,7 @@ public class Team {
                 return null;
             }
         } catch (Exception ex) {
-            throw new JiraException("Failed to retrieve team by id", ex);
+            throw new JiraException("Failed to retrieve team by id: " + id, ex);
         }
 
         if (!(response instanceof JSONObject)) {
@@ -119,36 +120,44 @@ public class Team {
         if (!result.containsKey(ID) || !(result.get(ID) instanceof Number)) {
             return null;
         }
+
         return new Team(result);
     }
 
     public static Team create(RestClient restClient, String name, String summary, String lead) throws JiraException {
         JSON result = null;
+
         try {
             result = restClient.post(getRestUri(), new Team(null, name, summary, lead).asJsonObject());
         } catch (Exception ex) {
             throw new JiraException("Failed to create team", ex);
         }
+
         if (!(result instanceof JSONObject) || !((JSONObject) result).containsKey(ID)
                 || !(((JSONObject) result).get(ID) instanceof Number)) {
-            throw new JiraException("Unexpected result on team creation");
+            throw new JiraException("Unexpected result on team creation: " + result.toString());
         }
 
         return new Team((JSONObject) result);
     }
 
     public static boolean delete(RestClient restClient, Integer id) throws JiraException {
-        JSON result = null;
-        try {
-            result = restClient.delete(getRestUri() + id.toString());
-        } catch (Exception ex) {
-            throw new JiraException("Failed to delete team", ex);
-        }
-        if (!result.isEmpty()) {
-            throw new JiraException("Failed to delete team by id");
+        JSON result = new JSONObject();
+
+        if (get(restClient, id) != null) {
+            try {
+                result = restClient.delete(getRestUri() + id.toString());
+            } catch (Exception ex) {
+                throw new JiraException("Failed to delete team by id " + id, ex);
+            }
+            if (result != null) {
+                throw new JiraException("Unexpected result on team deletion: " + result.toString());
+            }
+            return true;
+        } else {
+            return false;
         }
 
-        return true;
     }
 
     public JSONObject asJsonObject() {
@@ -159,9 +168,7 @@ public class Team {
         if (StringUtils.isNotBlank(name)) {
             result.put(NAME, name);
         }
-        if (StringUtils.isNotBlank(summary)) {
-            result.put(SUMMARY, summary);
-        }
+        result.put(SUMMARY, summary);
         if (StringUtils.isNotBlank(lead)) {
             result.put(LEAD, lead);
         }

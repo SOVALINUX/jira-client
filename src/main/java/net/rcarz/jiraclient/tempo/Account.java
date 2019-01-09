@@ -9,7 +9,7 @@ import org.apache.http.HttpStatus;
 
 import java.util.*;
 
-import static net.rcarz.jiraclient.tempo.TempoResource.getBaseTempoUri;
+import static net.rcarz.jiraclient.tempo.TempoResource.getBaseTempoAccountsUri;
 
 /**
  * Created by Sergey Nekhviadovich on 12/4/2018.
@@ -30,7 +30,7 @@ public class Account {
 
 
     private static String getRestUri(String key) {
-        String url = getBaseTempoUri() + "/account/";
+        String url = getBaseTempoAccountsUri() + "/account/";
         if (StringUtils.isNotBlank(key)) {
             url += "key/" + key;
         }
@@ -74,7 +74,7 @@ public class Account {
 
             if (!(result instanceof JSONObject) || !((JSONObject) result).containsKey("key")
                     || !(((JSONObject) result).get("key") instanceof String)) {
-                throw new JiraException("Unexpected result on create account");
+                throw new JiraException("Unexpected result on create account: " + result.toString());
             }
 
             return new Account(restClient, (JSONObject) result);

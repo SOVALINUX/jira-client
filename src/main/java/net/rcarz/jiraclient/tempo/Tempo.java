@@ -35,7 +35,7 @@ public class Tempo {
         return Account.get(restClient, key);
     }
 
-    public List<Team> getTeam() throws JiraException {
+    public List<Team> getTeams() throws JiraException {
         return Team.get(restClient);
     }
 
