@@ -39,14 +39,10 @@ public class TeamTest {
         assertEquals(team.getLead(), "erica");
     }
 
-    @Test
-    public void testJiraExceptionGetTeamByNullID(){
+    @Test(expected = IllegalArgumentException.class)
+    public void testJiraExceptionGetTeamByNullID() throws JiraException {
         final RestClient restClient = PowerMockito.mock(RestClient.class);
-        try {
-            Team.get(restClient, null);
-        } catch (JiraException expected) {
-            assertEquals("ID can't be null", expected.getMessage());
-        }
+        Team.get(restClient, null);
     }
 
     @Test(expected = JiraException.class)
@@ -122,29 +118,25 @@ public class TeamTest {
     @Test
     public void testDeleteNonExistTeam() throws Exception {
         final RestClient mockRestClient = PowerMockito.mock(RestClient.class);
-        when(mockRestClient.delete(anyString())).thenThrow(new RestException("", 404, "", new Header[] {new BasicHeader("","")}));
+        when(mockRestClient.delete(anyString())).thenThrow(new RestException("", 404, "", new Header[] {new BasicHeader("", "")}));
         boolean team = Team.delete(mockRestClient, 3);
         assertFalse(team);
     }
 
-    @Test
-    public void testJiraExceptionDeleteTeamByNullID(){
+    @Test(expected = IllegalArgumentException.class)
+    public void testJiraExceptionDeleteTeamByNullID() throws JiraException {
         final RestClient restClient = PowerMockito.mock(RestClient.class);
-        try {
-            Team.delete(restClient, null);
-        } catch (JiraException expected) {
-            assertEquals("ID can't be null", expected.getMessage());
-        }
+        Team.delete(restClient, null);
     }
 
-    @Test (expected = JiraException.class)
+    @Test(expected = JiraException.class)
     public void testRestExceptionDeleteTeam() throws Exception {
         final RestClient mockRestClient = PowerMockito.mock(RestClient.class);
-        when(mockRestClient.delete(anyString())).thenThrow(Exception.class);
+        when(mockRestClient.delete(anyString())).thenThrow(RestException.class);
         Team.delete(mockRestClient, 3);
     }
 
-    @Test (expected = JiraException.class)
+    @Test(expected = JiraException.class)
     public void testJiraExceptionDeleteTeam() throws Exception {
         final RestClient mockRestClient = PowerMockito.mock(RestClient.class);
         when(mockRestClient.delete(anyString())).thenReturn(getTestJSON());

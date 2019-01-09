@@ -2,6 +2,7 @@ package net.rcarz.jiraclient.tempo;
 
 import net.rcarz.jiraclient.JiraException;
 import net.rcarz.jiraclient.RestClient;
+import net.rcarz.jiraclient.RestException;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
  * Created by Sergey Nekhviadovich on 12/4/2018.
  */
 public class Tempo {
+
     private RestClient restClient;
 
     public Tempo(RestClient restClient) {

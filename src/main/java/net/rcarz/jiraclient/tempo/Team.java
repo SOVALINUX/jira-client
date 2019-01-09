@@ -100,21 +100,23 @@ public class Team {
         return result;
     }
 
-    public static Team get(RestClient restClient, Integer id) throws JiraException{
+    public static Team get(RestClient restClient, Integer id) throws JiraException {
         JSON response = null;
-        if (id != null) {
-            try {
-                response = restClient.get(getRestUri() + id);
-            } catch (RestException rx) {
-                if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                    return null;
-                }
-            } catch (Exception ex) {
-                throw new JiraException("Failed to retrieve team by id: " + id, ex);
-            }
-        } else {
-            throw new JiraException("ID can't be null");
+        if (id == null) {
+            throw new IllegalArgumentException("ID can't be null");
         }
+        try {
+            response = restClient.get(getRestUri() + id);
+        } catch (RestException rx) {
+            if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return null;
+            } else {
+                throw new JiraException("Failed to delete team by id " + id, rx);
+            }
+        } catch (Exception ex) {
+            throw new JiraException("Failed to retrieve team by id: " + id, ex);
+        }
+
         if (!(response instanceof JSONObject)) {
             throw new JiraException("JSON payload is malformed");
         }
@@ -151,25 +153,26 @@ public class Team {
     public static boolean delete(RestClient restClient, Integer id) throws JiraException {
         JSON result = new JSONObject();
 
-        if (id != null) {
-            try {
-                result = restClient.delete(getRestUri() + id.toString());
-            } catch (RestException rx) {
-                if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                    return false;
-                } else {
-                    throw new JiraException("Failed to delete team by id " + id, rx);
-                }
-            } catch (Exception ex) {
-                throw new JiraException("Failed to delete team by id " + id, ex);
-            }
-            if (result != null) {
-                throw new JiraException("Unexpected result on team deletion: " + result.toString());
-            }
-            return true;
-        } else {
-            throw new JiraException("ID can't be null");
+        if (id == null) {
+            throw new IllegalArgumentException("ID can't be null");
         }
+        try {
+            result = restClient.delete(getRestUri() + id);
+        } catch (RestException rx) {
+            if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                return false;
+            } else {
+                throw new JiraException("Failed to delete team by id " + id, rx);
+            }
+        } catch (Exception ex) {
+            throw new JiraException("Failed to delete team by id " + id, ex);
+        }
+
+        //check that response is correct (correct response is null)
+        if (result != null) {
+            throw new JiraException("Unexpected result on team deletion: " + result);
+        }
+        return true;
 
     }
 
