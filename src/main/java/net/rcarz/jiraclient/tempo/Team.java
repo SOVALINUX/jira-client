@@ -102,17 +102,19 @@ public class Team {
 
     public static Team get(RestClient restClient, Integer id) throws JiraException{
         JSON response = null;
-
-        try {
-            response = restClient.get(getRestUri() + id.toString());
-        } catch (RestException rx) {
-            if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                return null;
+        if (id != null) {
+            try {
+                response = restClient.get(getRestUri() + id);
+            } catch (RestException rx) {
+                if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    return null;
+                }
+            } catch (Exception ex) {
+                throw new JiraException("Failed to retrieve team by id: " + id, ex);
             }
-        } catch (Exception ex) {
-            throw new JiraException("Failed to retrieve team by id: " + id, ex);
+        } else {
+            throw new JiraException("ID can't be null");
         }
-
         if (!(response instanceof JSONObject)) {
             throw new JiraException("JSON payload is malformed");
         }
@@ -141,12 +143,23 @@ public class Team {
         return new Team((JSONObject) result);
     }
 
+    /**
+     * Delete tempo team by id
+     *
+     * @return false if team with provided id does not exist
+     */
     public static boolean delete(RestClient restClient, Integer id) throws JiraException {
         JSON result = new JSONObject();
 
-        if (get(restClient, id) != null) {
+        if (id != null) {
             try {
                 result = restClient.delete(getRestUri() + id.toString());
+            } catch (RestException rx) {
+                if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    return false;
+                } else {
+                    throw new JiraException("Failed to delete team by id " + id, rx);
+                }
             } catch (Exception ex) {
                 throw new JiraException("Failed to delete team by id " + id, ex);
             }
@@ -155,7 +168,7 @@ public class Team {
             }
             return true;
         } else {
-            return false;
+            throw new JiraException("ID can't be null");
         }
 
     }

@@ -5,6 +5,8 @@ import net.rcarz.jiraclient.RestClient;
 import net.rcarz.jiraclient.RestException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
@@ -12,7 +14,6 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -36,6 +37,16 @@ public class TeamTest {
         assertEquals(team.getName(), "Cloud Development");
         assertEquals(team.getSummary(), "Cloud Development Team");
         assertEquals(team.getLead(), "erica");
+    }
+
+    @Test
+    public void testJiraExceptionGetTeamByNullID(){
+        final RestClient restClient = PowerMockito.mock(RestClient.class);
+        try {
+            Team.get(restClient, null);
+        } catch (JiraException expected) {
+            assertEquals("ID can't be null", expected.getMessage());
+        }
     }
 
     @Test(expected = JiraException.class)
@@ -103,7 +114,6 @@ public class TeamTest {
     @Test
     public void testDeleteExistTeam() throws Exception {
         final RestClient mockRestClient = PowerMockito.mock(RestClient.class);
-        when(mockRestClient.get(anyString())).thenReturn(getTestJSON());
         when(mockRestClient.delete(anyString())).thenReturn(null);
         boolean team = Team.delete(mockRestClient, 3);
         assertTrue(team);
@@ -112,10 +122,19 @@ public class TeamTest {
     @Test
     public void testDeleteNonExistTeam() throws Exception {
         final RestClient mockRestClient = PowerMockito.mock(RestClient.class);
-        when(mockRestClient.get(anyString())).thenReturn(getTestErrorJSON());
-        when(mockRestClient.delete(anyString())).thenReturn(null);
+        when(mockRestClient.delete(anyString())).thenThrow(new RestException("", 404, "", new Header[] {new BasicHeader("","")}));
         boolean team = Team.delete(mockRestClient, 3);
         assertFalse(team);
+    }
+
+    @Test
+    public void testJiraExceptionDeleteTeamByNullID(){
+        final RestClient restClient = PowerMockito.mock(RestClient.class);
+        try {
+            Team.delete(restClient, null);
+        } catch (JiraException expected) {
+            assertEquals("ID can't be null", expected.getMessage());
+        }
     }
 
     @Test (expected = JiraException.class)
