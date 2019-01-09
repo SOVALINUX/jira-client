@@ -111,7 +111,7 @@ public class Team {
             if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
                 return null;
             } else {
-                throw new JiraException("Failed to delete team by id " + id, rx);
+                throw new JiraException("Failed to retrieve team by id: " + id, rx);
             }
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve team by id: " + id, ex);
