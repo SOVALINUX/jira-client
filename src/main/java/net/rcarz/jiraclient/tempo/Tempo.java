@@ -52,8 +52,4 @@ public class Tempo {
     public boolean deleteTeam(Integer id) throws JiraException {
         return Team.delete(restClient, id);
     }
-
-    public List<User> getTeamMembers(Integer id) throws JiraException {
-        return Team.getTeamMembers(restClient, id);
-    }
 }

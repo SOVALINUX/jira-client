@@ -5,16 +5,20 @@ package net.rcarz.jiraclient.tempo;
  */
 public class TempoResource {
 
-    private static String getApiRev() {
+    private static String getAccountApiRev() {
         return "1";
     }
 
+    private static String getTeamApiRev() {
+        return "2";
+    }
+
     public static String getBaseTempoAccountsUri() {
-        return "rest/tempo-accounts/" + getApiRev();
+        return "rest/tempo-accounts/" + getAccountApiRev();
     }
 
     public static String getBaseTempoTeamsUri() {
-        return "rest/tempo-teams/";
+        return "rest/tempo-teams/" + getTeamApiRev();
     }
 
 }

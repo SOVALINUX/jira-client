@@ -23,39 +23,32 @@ public class Team {
     private static final String NAME = "name";
     private static final String SUMMARY = "summary";
     private static final String LEAD = "lead";
+    private static final String REST_CLIENT = "restClient";
 
-    private static final String URI_KEY = "member";
-
-    private static String getApiRev(String key) {
-        if (key.isEmpty()) {
-            return "1";
-        } else {
-            return "2";
-        }
-    }
-
-    private static String getRestUri(String key) {
-        return TempoResource.getBaseTempoTeamsUri() + getApiRev(key) + "/team/";
+    private static String getRestUri() {
+        return TempoResource.getBaseTempoTeamsUri() + "/team/";
     }
 
     private Integer id;
     private String name;
     private String summary;
     private String lead;
+    private RestClient restClient;
 
-    public Team(Integer id, String name, String summary, String lead) {
+    private Team(RestClient restClient, Integer id, String name, String summary, String lead) {
         this.id = id;
         this.name = name;
         this.summary = summary;
         this.lead = lead;
+        this.restClient = restClient;
     }
 
+    public Team(RestClient restClient, JSONObject map) {
+        this.restClient = restClient;
 
-    public Team(JSONObject map) {
-        id = net.rcarz.jiraclient.Field.getInteger(map.get(ID));
-        name = net.rcarz.jiraclient.Field.getString(map.get(NAME));
-        summary = net.rcarz.jiraclient.Field.getString(map.get(SUMMARY));
-        lead = net.rcarz.jiraclient.Field.getString(map.get(LEAD));
+        if (map != null) {
+            deserialise(map);
+        }
     }
 
     public Integer getId() {
@@ -94,7 +87,7 @@ public class Team {
         JSON response = null;
 
         try {
-            response = restclient.get(getRestUri(""));
+            response = restclient.get(getRestUri());
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve all teams", ex);
         }
@@ -105,7 +98,7 @@ public class Team {
         List<Team> result = new ArrayList<Team>();
         Iterator it = ((JSONArray) response).iterator();
         while (it != null && it.hasNext()) {
-            result.add(new Team((JSONObject) it.next()));
+            result.add(new Team(restclient, (JSONObject) it.next()));
         }
 
         return result;
@@ -117,7 +110,7 @@ public class Team {
             throw new IllegalArgumentException("ID can't be null");
         }
         try {
-            response = restClient.get(getRestUri("") + id);
+            response = restClient.get(getRestUri() + id);
         } catch (RestException rx) {
             if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
                 return null;
@@ -136,14 +129,14 @@ public class Team {
             return null;
         }
 
-        return new Team(result);
+        return new Team(restClient, result);
     }
 
     public static Team create(RestClient restClient, String name, String summary, String lead) throws JiraException {
         JSON result = null;
 
         try {
-            result = restClient.post(getRestUri(""), new Team(null, name, summary, lead).asJsonObject());
+            result = restClient.post(getRestUri(), new Team(null, null, name, summary, lead).asJsonObject());
         } catch (Exception ex) {
             throw new JiraException("Failed to create team", ex);
         }
@@ -153,7 +146,7 @@ public class Team {
             throw new JiraException("Unexpected result on team creation: " + result.toString());
         }
 
-        return new Team((JSONObject) result);
+        return new Team(restClient, (JSONObject) result);
     }
 
     /**
@@ -168,7 +161,7 @@ public class Team {
             throw new IllegalArgumentException("ID can't be null");
         }
         try {
-            result = restClient.delete(getRestUri("") + id);
+            result = restClient.delete(getRestUri() + id);
         } catch (RestException rx) {
             if (rx.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
                 return false;
@@ -187,14 +180,14 @@ public class Team {
 
     }
 
-    public static List<User> getTeamMembers(RestClient restClient, Integer id) throws JiraException {
+    public List<User> getTeamMembers() throws JiraException {
         JSON response = null;
 
         if (id == null) {
             throw new IllegalArgumentException("ID can't be null");
         }
         try {
-            response = restClient.get(getRestUri(URI_KEY) + id + "/member");
+            response = restClient.get(getRestUri() + id + "/member");
         } catch (Exception ex) {
             throw new JiraException("Failed to retrieve team members by id: " + id, ex);
         }
@@ -215,6 +208,9 @@ public class Team {
 
     public JSONObject asJsonObject() {
         JSONObject result = new JSONObject();
+        if (restClient != null) {
+            result.put(REST_CLIENT, restClient);
+        }
         if (id != null) {
             result.put(ID, id);
         }
@@ -226,6 +222,13 @@ public class Team {
             result.put(LEAD, lead);
         }
         return result;
+    }
+
+    private void deserialise(JSONObject map) {
+        id = net.rcarz.jiraclient.Field.getInteger(map.get(ID));
+        name = net.rcarz.jiraclient.Field.getString(map.get(NAME));
+        summary = net.rcarz.jiraclient.Field.getString(map.get(SUMMARY));
+        lead = net.rcarz.jiraclient.Field.getString(map.get(LEAD));
     }
 }
 
