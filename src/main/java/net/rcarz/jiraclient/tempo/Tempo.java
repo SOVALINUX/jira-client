@@ -2,6 +2,7 @@ package net.rcarz.jiraclient.tempo;
 
 import net.rcarz.jiraclient.JiraException;
 import net.rcarz.jiraclient.RestClient;
+import net.rcarz.jiraclient.User;
 
 import java.util.List;
 
@@ -50,5 +51,9 @@ public class Tempo {
 
     public boolean deleteTeam(Integer id) throws JiraException {
         return Team.delete(restClient, id);
+    }
+
+    public List<User> getTeamMembers(Integer id) throws JiraException {
+        return Team.getTeamMembers(restClient, id);
     }
 }
