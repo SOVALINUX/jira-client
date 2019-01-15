@@ -16,5 +16,4 @@ public class TempoResource {
     public static String getBaseTempoTeamsUri() {
         return "rest/tempo-teams/";
     }
-
 }

@@ -23,7 +23,7 @@ public class Team {
     private static final String NAME = "name";
     private static final String SUMMARY = "summary";
     private static final String LEAD = "lead";
-
+  
     private static final String URI_KEY = "member";
 
     private static String getApiRev(String key) {
@@ -212,7 +212,7 @@ public class Team {
 
         return result;
     }
-
+      
     public JSONObject asJsonObject() {
         JSONObject result = new JSONObject();
         if (id != null) {
