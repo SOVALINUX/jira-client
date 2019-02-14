@@ -217,6 +217,29 @@ public class Team {
         return members;
     }
 
+    public User addTeamMember(String username, Integer roleId, String dateFrom, String dateTo, Integer availability) throws
+            JiraException {
+        JSONObject newTeamMember = newTeamMemberJsonObject(username, roleId, dateFrom, dateTo, availability);
+        JSON response;
+
+
+        if (id == null) {
+            throw new IllegalArgumentException("ID can't be null");
+        }
+        try {
+            response = restClient.post(getRestUri() + id + "/member", newTeamMember);
+        } catch (Exception ex) {
+            throw new JiraException("Failed to add team member " + username + " by id: " + id, ex);
+        }
+
+        if (!(response instanceof JSONObject)) {
+            throw new JiraException("JSON payload is malformed");
+        }
+
+        String teamMemberUsername = ((JSONObject) response).getJSONObject("member").getString("name");
+        return User.get(restClient, teamMemberUsername);
+    }
+
     public JSONObject asJsonObject() {
         JSONObject result = new JSONObject();
 
@@ -232,6 +255,32 @@ public class Team {
         }
 
         return result;
+    }
+
+    public JSONObject newTeamMemberJsonObject(String username, Integer roleId, String dateFrom, String dateTo, Integer availability) {
+        JSONObject teamMember = new JSONObject();
+        JSONObject member = new JSONObject();
+        JSONObject membership = new JSONObject();
+        JSONObject role = new JSONObject();
+
+        if (StringUtils.isNotBlank(username)) {
+            member.put("name", username);
+        }
+        member.put("type", "USER");
+
+        if (roleId != null) {
+            role.put("id", roleId);
+        }
+        membership.put("role", role);
+        membership.put("dateFrom", dateFrom);
+        membership.put("dateTo", dateTo);
+        if (availability != null) {
+            membership.put("availability", availability);
+        }
+
+        teamMember.put("member", member);
+        teamMember.put("membership", membership);
+        return teamMember;
     }
 
     private void deserialise(JSONObject map) {
