@@ -221,8 +221,7 @@ public class Team {
             JiraException {
         JSONObject newTeamMember = newTeamMemberJsonObject(username, roleId, dateFrom, dateTo, availability);
         JSON response;
-
-
+        
         if (id == null) {
             throw new IllegalArgumentException("ID can't be null");
         }
